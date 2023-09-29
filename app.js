@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
@@ -23,10 +24,12 @@ const userSchema = new mongoose.Schema({
   password: String,
 });
 
-const secret = "Thisisourlittlesecret";
 //plugin the encrypt functionality
 //alternate: excludeFromEncryption: ['email']
-userSchema.plugin(encrypt, { secret: secret, encryptedFields: ["password"] });
+userSchema.plugin(encrypt, {
+  secret: process.env.SECRET,
+  encryptedFields: ["password"],
+});
 
 const User = new mongoose.model("User", userSchema);
 
@@ -67,13 +70,12 @@ app.post("/login", function (req, res) {
       if (foundUser && foundUser.password === password) {
         res.render("secrets");
       } else {
-        // Handle case where user is not found or password doesn't match
-        // You can redirect to a login failure page or display an error message.
+        // case where user not found or password doesn't match
+        // can redirect to a login failure page or display error message.
       }
     })
     .catch((err) => {
       console.log(err);
-      // Handle any other errors that occur during the query.
     });
 });
 
