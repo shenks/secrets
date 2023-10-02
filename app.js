@@ -41,6 +41,7 @@ const userSchema = new mongoose.Schema({
   email: String,
   password: String,
   googleId: String,
+  secret: String,
 });
 
 //plugin into userSchema just above
@@ -115,13 +116,50 @@ app.get("/register", function (req, res) {
   res.render("register");
 });
 
+//part 8:
 app.get("/secrets", function (req, res) {
+  User.find({ secret: { $ne: null } })
+    .then((foundUsers) => {
+      if (foundUsers) {
+        res.render("secrets", { usersWithSecrets: foundUsers });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+});
+
+//rendering /submit and posting
+app.get("/submit", function (req, res) {
   if (req.isAuthenticated()) {
-    res.render("secrets");
+    res.render("submit");
   } else {
     res.redirect("/login");
   }
 });
+
+app.post("/submit", function (req, res) {
+  if (req.isAuthenticated()) {
+    const submittedSecret = req.body.secret;
+    console.log(req.user.id);
+
+    User.findById(req.user.id)
+      .then((foundUser) => {
+        if (foundUser) {
+          foundUser.secret = submittedSecret;
+          return foundUser.save();
+        }
+      })
+      .then(() => {
+        res.redirect("/secrets");
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  } else {
+    res.redirect("/login");
+  }
+}); //part 8 end
 
 app.get("/logout", function (req, res) {
   req.logout(function (err) {
